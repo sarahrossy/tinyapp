@@ -1,20 +1,30 @@
 const express = require("express");
-const app = express();
+const app = express(); // creates an express server called app
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+function generateRandomString(length, chars) {
+  var mask = '';
+  if (chars.indexOf('a') > -1) mask += 'abcdefghijklmnopqrstuvwxyz';
+  if (chars.indexOf('#') > -1) mask += '0123456789';
+  var result = '';
+  for (var i = length; i > 0; --i) result += mask[Math.floor(Math.random() * mask.length)];
+  return result;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
-};
+}; // normally express backend talks to database, then sends to front end
 
+const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
+app.use(bodyParser.urlencoded({extended: true}));
+
+// ROUTES - creating URL paths that the app can use
+// the first parameter affects the URL itself
 app.get("/", (req, res) => {
   res.send("Hello!");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
 });
 
 app.get("/urls", (req, res) => {
@@ -22,16 +32,31 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL }; //confused here
-  res.render("urls_show", templateVars);
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send('Ok!!!');      // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  console.log(req.params);
+  const shortURL = req.params.shortURL;
+  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] }; //confused here
+  res.render("urls_show", templateVars);
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+// app.get("/urls.json", (req, res) => {
+//   res.json(urlDatabase);
+// });
+
+// app.get("/hello", (req, res) => {
+//   const templateVars = { greeting: 'Hello World!' };
+//   res.render("hello_world", templateVars);
+// });
