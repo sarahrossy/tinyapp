@@ -36,15 +36,24 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send('Ok!!!');      // Respond with 'Ok' (we will replace this)
+  const shortURL = generateRandomString(6, '#a');
+  res.redirect(`/urls/${shortURL}`); 
+  urlDatabase[shortURL] = req.body.longURL;
+  // console.log(urlDatabase);
+});
+
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(req.params);
   const shortURL = req.params.shortURL;
-  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] }; //confused here
+  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] }; 
   res.render("urls_show", templateVars);
 });
 
