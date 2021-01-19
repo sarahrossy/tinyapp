@@ -45,12 +45,17 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = req.body.longURL;
 });
 
-// ** WORKING HERE
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  //console.log(`req.params`);
   delete urlDatabase[shortURL];
   res.redirect(`/urls`); 
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  // how do we save the input value from the form in urls_show and add it to the urlDatabase object on the server side?
+  // what syntax do I use to change the values inside the urlDatabase object?
+  urlDatabase[req.params.shortURL] = req.body.newLongURL;
+  res.redirect(`/urls`);
 });
 
 
