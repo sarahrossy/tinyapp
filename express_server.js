@@ -1,8 +1,10 @@
 const express = require("express");
 const app = express(); // creates an express server called app
 const PORT = 8080; // default port 8080
+const morgan = require('morgan')
 
 app.set("view engine", "ejs");
+app.use(morgan('dev'));
 
 function generateRandomString(length, chars) {
   var mask = '';
@@ -45,7 +47,9 @@ app.post("/urls", (req, res) => {
 
 // ** WORKING HERE
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase.shortURL;
+  const shortURL = req.params.shortURL;
+  //console.log(`req.params`);
+  delete urlDatabase[shortURL];
   res.redirect(`/urls`); 
 });
 
