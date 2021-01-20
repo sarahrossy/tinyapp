@@ -1,10 +1,12 @@
 const express = require("express");
 const app = express(); // creates an express server called app
 const PORT = 8080; // default port 8080
-const morgan = require('morgan')
+const morgan = require('morgan');
+var cookieParser = require('cookie-parser');
 
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
+app.use(cookieParser());
 
 function generateRandomString(length, chars) {
   var mask = '';
@@ -19,6 +21,12 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 }; // normally express backend talks to database, then sends to front end
+
+// 
+// const templateVars = {
+//   username: req.cookies["username"]
+// };
+//res.render("urls_index", templateVars);
 
 const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
 app.use(bodyParser.urlencoded({extended: true}));
@@ -58,6 +66,13 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect(`/urls`);
 });
 
+app.post("/login", (req, res) => {
+  const username = req.body.username;
+  res.cookie('username', username);
+  console.log(username);
+  res.redirect(`/urls`);
+})
+
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -74,12 +89,3 @@ app.get("/urls/:shortURL", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// app.get("/urls.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// app.get("/hello", (req, res) => {
-//   const templateVars = { greeting: 'Hello World!' };
-//   res.render("hello_world", templateVars);
-// });
