@@ -9,18 +9,20 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-            
       <% if (!user) { %>
-        <form method="POST" action="/login" name="login"> 
+      <a class="nav-item nav-link" href="/login">Login</a>
+      <a class="nav-item nav-link" href="/register">Register</a>
+      <% } else { %>
+        <a id = "loggedin">Logged in as: <%= user.email %>!</a>
+        <form method = "POST" action = "/logout">
+          <button type="submit" class="btn btn-outline-secondary">Logout</button>
+        </form> 
+    <% } %>
+            
+        <!-- <form method="POST" action="/login" name="login"> 
           <input type="text" name="username" placeholder="Enter username"> 
           <button type="submit" class="btn btn-outline-warning">Login</button>
-        </form>
-        <% } else { %>
-          <a id = "loggedin">Logged in as: Tinyapp <%= user.email %>!</a>
-          <form method = "POST" action = "/logout">
-            <button type="submit" class="btn btn-outline-warning">Logout</button>
-          </form> 
-      <% } %>
+        </form> -->
     </div>
   </nav>
 </header>

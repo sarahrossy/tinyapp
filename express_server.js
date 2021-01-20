@@ -2,7 +2,7 @@ const express = require("express");
 const morgan = require('morgan');
 const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
 const cookieParser = require('cookie-parser');
-const { emailExists } = require('./helpers/userHelpers');
+const { emailExists, emailOrPasswordEmpty, fetchUser } = require('./helpers/userHelpers');
 const app = express(); // creates an express server called app
 const PORT = 8080; // default port 8080
 
@@ -27,12 +27,14 @@ const urlDatabase = {
 }; // normally express backend talks to database, then sends to front end
 
 const users = { 
-  "userRandomID": {
+  "userRandomID":
+  {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "purple"
   },
- "user2RandomID": {
+ "user2RandomID":
+ {
     id: "user2RandomID", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
@@ -47,7 +49,6 @@ app.get("/urls", (req, res) => {
   const userID = req.cookies['user_id'];
   const templateVars = {
     urls: urlDatabase,
-    //username: req.cookies["username"]
     user: users[userID]
   };
   res.render("urls_index", templateVars);
@@ -57,7 +58,6 @@ app.get("/urls/new", (req, res) => {
   const userID = req.cookies['user_id'];
   const templateVars = {
     urls: urlDatabase,
-    //username: req.cookies["username"],
     user: users[userID]
   };
   res.render("urls_new", templateVars);
@@ -80,22 +80,43 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect(`/urls`);
 });
 
-app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie('user_id', username);
-  res.redirect(`/urls`);
+app.get('/login', (req, res) => {
+  const userID = req.cookies['user_id'];
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[userID]
+  };
+  res.render("login", templateVars); 
+});
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const submittedPassword = req.body.password;
+  
+  if (fetchUser(users, email)) {
+    const user = fetchUser(users, email);
+      if (user.password === submittedPassword) {
+        res.cookie('user_id', user.id);
+        res.redirect('/urls');
+      } else {
+        console.log("Passwords do not match!")
+        res.sendStatus(404);
+      };
+  } else if (!fetchUser(users, email)) {
+    console.log("User is not registered in our database!")
+    res.sendStatus(404);
+  }
+  res.redirect('/urls');
 });
 
 app.post("/logout", (req, res) => {
-  // cookie file is global scope
   res.clearCookie('user_id');
-  res.redirect(`/urls`);
+  res.redirect('/urls');
 });
 
 app.get("/register", (req, res) => {
   const userID = req.cookies['user_id'];
   const templateVars = {
-    //username: req.cookies["username"]
     user: users[userID]
   };
   res.render('registration', templateVars);
@@ -109,18 +130,25 @@ app.post("/register", (req, res) => {
   if (emailExists(users, incomingEmail)) {
     console.log("email already exists");
     res.redirect('/register');
+  } else if (emailOrPasswordEmpty(incomingEmail, incomingName)) {
+    console.log("email or password are blank fields")
+    res.sendStatus(404);
+  } else if (fetchUser(users, incomingEmail)) {
+    console.log("user already exists!");
+    res.sendStatus(404);
   } else {
+    console.log(users);
     const newUser = {
-      name: incomingName,
+      // name: incomingName,
       email: incomingEmail,
       password: incomingPassword
     }
     const newUserID = generateRandomString(6, '#a');
     users[newUserID] = newUser;
     res.cookie('user_id', newUserID);
+    res.redirect('/urls');
   }
-  res.redirect('/urls');
-})
+});
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -133,7 +161,6 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: shortURL,
     longURL: urlDatabase[shortURL],
-    //username: req.cookies.username
     user: req.cookies['user_id']
   }; 
   res.render("urls_show", templateVars);
