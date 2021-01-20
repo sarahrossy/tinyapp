@@ -11,8 +11,8 @@
       </div>
             
       <% if (!username) { %>
-        <form method="POST" action="/login" name="login"> Username:
-          <input type="text" name="username">
+        <form method="POST" action="/login" name="login"> 
+          <input type="text" name="username" placeholder="Enter username"> 
           <button type="submit" class="btn btn-outline-warning">Login</button>
         </form>
         <% } else { %>

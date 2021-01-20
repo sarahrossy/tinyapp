@@ -1,12 +1,16 @@
 const express = require("express");
+const morgan = require('morgan');
+const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
+const cookieParser = require('cookie-parser');
+const { emailExists } = require('./helpers/userHelpers');
 const app = express(); // creates an express server called app
 const PORT = 8080; // default port 8080
-const morgan = require('morgan');
-var cookieParser = require('cookie-parser');
 
-app.set("view engine", "ejs");
 app.use(morgan('dev'));
 app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.set("view engine", "ejs");
 
 function generateRandomString(length, chars) {
   var mask = '';
@@ -22,8 +26,18 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 }; // normally express backend talks to database, then sends to front end
 
-const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
-app.use(bodyParser.urlencoded({extended: true}));
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
 
 // ROUTES - creating URL paths that the app can use
 // the first parameter affects the URL itself
@@ -34,12 +48,17 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"] };
+    username: req.cookies["username"]
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -55,8 +74,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  // how do we save the input value from the form in urls_show and add it to the urlDatabase object on the server side?
-  // what syntax do I use to change the values inside the urlDatabase object?
   urlDatabase[req.params.shortURL] = req.body.newLongURL;
   res.redirect(`/urls`);
 });
@@ -73,6 +90,33 @@ app.post("/logout", (req, res) => {
   res.redirect(`/urls`);
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render('registration', templateVars);
+
+});
+
+app.post("/register", (req, res) => {
+  const incomingEmail = req.body.email;
+  const incomingName = req.body.name;
+  const incomingPassword = req.body.password;
+  if (emailExists(users, incomingEmail)) {
+    console.log("email already exists");
+    res.redirect('/register');
+  } else {
+    const newUser = {
+      name: incomingName,
+      email: incomingEmail,
+      password: incomingPassword
+    }
+    const newUserID = generateRandomString(6, '#a');
+    users[newUserID] = newUser;
+    res.cookie('user_id', newUserID);
+  }
+  res.redirect('/urls');
+})
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -82,7 +126,11 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] }; 
+  const templateVars = { 
+    shortURL: shortURL,
+    longURL: urlDatabase[shortURL],
+    username: req.cookies.username
+  }; 
   res.render("urls_show", templateVars);
 });
 
