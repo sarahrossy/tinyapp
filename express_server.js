@@ -39,24 +39,26 @@ const users = {
   }
 };
 
-// ROUTES - creating URL paths that the app can use
-// the first parameter affects the URL itself
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
+  const userID = req.cookies['user_id'];
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    //username: req.cookies["username"]
+    user: users[userID]
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
+  const userID = req.cookies['user_id'];
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    //username: req.cookies["username"],
+    user: users[userID]
   };
   res.render("urls_new", templateVars);
 });
@@ -80,19 +82,21 @@ app.post("/urls/:shortURL", (req, res) => {
 
 app.post("/login", (req, res) => {
   const username = req.body.username;
-  res.cookie('username', username);
+  res.cookie('user_id', username);
   res.redirect(`/urls`);
 });
 
 app.post("/logout", (req, res) => {
   // cookie file is global scope
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect(`/urls`);
 });
 
 app.get("/register", (req, res) => {
+  const userID = req.cookies['user_id'];
   const templateVars = {
-    username: req.cookies["username"]
+    //username: req.cookies["username"]
+    user: users[userID]
   };
   res.render('registration', templateVars);
 
@@ -129,7 +133,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: shortURL,
     longURL: urlDatabase[shortURL],
-    username: req.cookies.username
+    //username: req.cookies.username
+    user: req.cookies['user_id']
   }; 
   res.render("urls_show", templateVars);
 });

@@ -10,13 +10,13 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
             
-      <% if (!username) { %>
+      <% if (!user) { %>
         <form method="POST" action="/login" name="login"> 
           <input type="text" name="username" placeholder="Enter username"> 
           <button type="submit" class="btn btn-outline-warning">Login</button>
         </form>
         <% } else { %>
-          <a id = "loggedin">Logged in as: Tinyapp <%= username %>!</a>
+          <a id = "loggedin">Logged in as: Tinyapp <%= user.email %>!</a>
           <form method = "POST" action = "/logout">
             <button type="submit" class="btn btn-outline-warning">Logout</button>
           </form> 
