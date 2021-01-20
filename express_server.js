@@ -22,12 +22,6 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 }; // normally express backend talks to database, then sends to front end
 
-// 
-// const templateVars = {
-//   username: req.cookies["username"]
-// };
-//res.render("urls_index", templateVars);
-
 const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -38,14 +32,15 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
-
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(6, '#a');
@@ -69,9 +64,14 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/login", (req, res) => {
   const username = req.body.username;
   res.cookie('username', username);
-  console.log(username);
   res.redirect(`/urls`);
-})
+});
+
+app.post("/logout", (req, res) => {
+  // cookie file is global scope
+  res.clearCookie('username');
+  res.redirect(`/urls`);
+});
 
 
 app.get("/u/:shortURL", (req, res) => {

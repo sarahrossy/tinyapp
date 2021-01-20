@@ -9,12 +9,18 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-      
-      <form method="post" action="/login" name="login"> Username:
-        <input type="text" name="username">
-        <button type="submit" class="btn btn-outline-warning">Login</button>
-      </form>
-
+            
+      <% if (!username) { %>
+        <form method="POST" action="/login" name="login"> Username:
+          <input type="text" name="username">
+          <button type="submit" class="btn btn-outline-warning">Login</button>
+        </form>
+        <% } else { %>
+          <a id = "loggedin">Logged in as: Tinyapp <%= username %>!</a>
+          <form method = "POST" action = "/logout">
+            <button type="submit" class="btn btn-outline-warning">Logout</button>
+          </form> 
+      <% } %>
     </div>
   </nav>
 </header>
