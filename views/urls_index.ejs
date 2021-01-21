@@ -12,27 +12,35 @@
 
   <%- include('partials/_header') %>
   
-  <main style="margin: 1em;">
-    <h3>My URLs</h3>
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Short URL</th>
-          <th scope="col">Long URL</th>
-        </tr>
-      </thead>
-      <tbody> 
-        <% for(let url in urls) { %>
+  <!-- if user is logged in, show this -->
+  <% if (user) { %>
+    <main style="margin: 1em;">
+      <h3>My URLs</h3>
+      <table class="table">
+        <thead>
           <tr>
-            <td><%= url %></td>
-            <td><%= urls[url].longURL %></td>
-            <td>
-              <form method="POST" action="/urls/<%= url %>/delete">
-                <button type="submit" class="btn btn-outline-danger">Delete
-                </button>
-              </form>
-            </td>
+            <th scope="col">Short URL</th>
+            <th scope="col">Long URL</th>
           </tr>
+        </thead>
+        <tbody> 
+          <% for(let url in urls) { %>
+            <tr>
+              <td><%= url %></td>
+              <td><%= urls[url].longURL %></td>
+              <td>
+                <form method="POST" action="/urls/<%= url %>/delete">
+                  <button type="submit" class="btn btn-outline-danger">Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% } %>
+        <% } else { %>
+          <br>
+          <h2>Welcome to TinyApp!</h2>
+          <br>
+          <h4>Please <a href="/login">Login</a> or <a href="/register">Register</a> to start making your short URLS!</h4>
         <% } %>
       </tbody>
     </table>

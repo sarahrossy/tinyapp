@@ -2,7 +2,7 @@ const express = require("express");
 const morgan = require('morgan');
 const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
 const cookieParser = require('cookie-parser');
-const { emailExists, emailOrPasswordEmpty, fetchUser } = require('./helpers/userHelpers');
+const { emailExists, emailOrPasswordEmpty, fetchUser, databaseFilter } = require('./helpers/userHelpers');
 const app = express(); // creates an express server called app
 const PORT = 8080; // default port 8080
 
@@ -54,17 +54,18 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// the /urls page will need to filter the entire list in the urlDatabase by comparing the userID with the logged-in user's ID.
+// This filtering process should happen before the data is sent to the template for rendering.
 app.get("/urls", (req, res) => {
   const userID = req.cookies['user_id'];
+  const filteredDatabase = databaseFilter(userID, urlDatabase);
   const templateVars = {
-    urls: urlDatabase,
+    urls: filteredDatabase,
     user: users[userID]
   };
-  //console.log(templateVars.urls);
   res.render("urls_index", templateVars);
 });
 
-//DONE
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(6, '#a');
   const longURL = req.body.longURL;
@@ -89,21 +90,17 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect(`/urls`); 
 });
 
-// update longUrl in the database (change longURL to newLongURL)
-// redirect back to URL homepage
 app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = { 
     longURL: req.body.newLongURL,
     userID: req.cookies['user_id']
   };
-  //console.log(urlDatabase);
   res.redirect(`/urls`);
 });
 
@@ -129,14 +126,13 @@ app.post('/login', (req, res) => {
         console.log("Passwords do not match!")
         res.sendStatus(404);
       };
-  } else if (!fetchUser(users, email)) {
+  } else {
     console.log("User is not registered in our database!")
     res.sendStatus(404);
   }
-  res.redirect('/urls');
 });
 
-app.post("/logout", (req, res) => {
+app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
 });
@@ -171,6 +167,7 @@ app.post("/register", (req, res) => {
       password: incomingPassword
     }
     const newUserID = generateRandomString(6, '#a');
+    newUser.id = newUserID;
     users[newUserID] = newUser;
     res.cookie('user_id', newUserID);
     res.redirect('/urls');
