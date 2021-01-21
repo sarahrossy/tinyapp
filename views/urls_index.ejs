@@ -21,11 +21,11 @@
           <th scope="col">Long URL</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody> 
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url].longURL %></td>
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
                 <button type="submit" class="btn btn-outline-danger">Delete

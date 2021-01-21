@@ -21,10 +21,19 @@ function generateRandomString(length, chars) {
   return result;
 };
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// }; 
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-}; // normally express backend talks to database, then sends to front end
+  b6UTxQ: 
+  { longURL: "https://www.tsn.ca",
+  userID: "aJ48lW" },
+  i3BoGr:
+  { longURL: "https://www.google.ca",
+  userID: "aJ48lW" }
+};
 
 const users = { 
   "userRandomID":
@@ -51,7 +60,19 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     user: users[userID]
   };
+  //console.log(templateVars.urls);
   res.render("urls_index", templateVars);
+});
+
+//DONE
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString(6, '#a');
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = { 
+    longURL: longURL,
+    userID: req.cookies['user_id']
+  };
+  res.redirect(`/urls/${shortURL}`); 
 });
 
 app.get("/urls/new", (req, res) => {
@@ -60,14 +81,14 @@ app.get("/urls/new", (req, res) => {
     urls: urlDatabase,
     user: users[userID]
   };
-  res.render("urls_new", templateVars);
+
+  if (templateVars.user) {
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString(6, '#a');
-  res.redirect(`/urls/${shortURL}`); 
-  urlDatabase[shortURL] = req.body.longURL;
-});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -75,8 +96,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect(`/urls`); 
 });
 
+// update longUrl in the database (change longURL to newLongURL)
+// redirect back to URL homepage
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.newLongURL;
+  urlDatabase[req.params.shortURL] = { 
+    longURL: req.body.newLongURL,
+    userID: req.cookies['user_id']
+  };
+  //console.log(urlDatabase);
   res.redirect(`/urls`);
 });
 
@@ -152,7 +179,7 @@ app.post("/register", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
 
@@ -160,10 +187,12 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const templateVars = { 
     shortURL: shortURL,
-    longURL: urlDatabase[shortURL],
+    //cannot read property "longURL" pf undefined
+    longURL: urlDatabase[shortURL].longURL,
     user: req.cookies['user_id']
   }; 
   res.render("urls_show", templateVars);
+  //console.log(templateVars);
 });
 
 app.listen(PORT, () => {
