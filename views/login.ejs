@@ -16,15 +16,17 @@
     <h3>Login</h3>
     <form class="form-inline" action="/login" method="POST">
       <div class="form-group mb-2"> 
-        <label for="longURL">Login to TinyApp!</label>
+        <label for="longURL"><strong>Welcome back to TinyApp!</strong></label>
         <br>
-          <input class="form-control" type="email" name="email" placeholder="email@example.com" style="width: 300px; margin: 1em">
+          <input class="form-control" type="email" name="email" placeholder="Email" style="width: 300px; margin: 1em">
           
-          <input class="form-control" type="password" name="password" placeholder="Enter Password Here" style="width: 300px; margin: 1em">
+          <input class="form-control" type="password" name="password" placeholder="Password" style="width: 300px; margin: 1em">
       
-          <button type="submit" class="btn btn-primary">Submit</button>
-      </div>
-    </form>
+          <button type="submit" class="btn btn-warning">Submit</button>
+        </div>
+      </form>
+      <div>
+      Or, <a href='/register'>create a new account</a>!</div>
   </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

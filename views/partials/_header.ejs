@@ -1,5 +1,5 @@
 <header>
-  <nav class="navbar navbar-expand-md navbar-dark bg-success">
+  <nav class="navbar navbar-expand-md navbar-dark bg-info">
     <a class="navbar-brand" href="/urls">TinyApp</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -7,22 +7,17 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
-      </div>
-      <% if (!user) { %>
-        <a class="nav-item nav-link" href="/login">Login</a>
-        <a class="nav-item nav-link" href="/register">Register</a>
-        <% } else { %>
-          <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-          <a id = "loggedin">Logged in as: <%= user.email %>!</a>
-          <form method = "POST" action = "/logout">
-          <button type="submit" class="btn btn-outline-secondary">Logout</button>
-        </form> 
-    <% } %>
-            
-        <!-- <form method="POST" action="/login" name="login"> 
-          <input type="text" name="username" placeholder="Enter username"> 
-          <button type="submit" class="btn btn-outline-warning">Login</button>
-        </form> -->
+        <% if (!user) { %>
+          <a class="nav-item nav-link" href="/login">Login</a>
+          <a class="nav-item nav-link" href="/register">Register</a>
+          <% } else { %>
+            <a class="nav-link" href="/urls/new">Shorten New Link</a>
+            <a id="loggedin" class="nav-item nav-link">Logged in as: <%= user.email %>!</a>
+            </div><form method="POST" action = "/logout">
+              <button type="submit" class="btn btn-light">Logout</button>
+            </form>
+            <% } %>
+          </div>
     </div>
   </nav>
 </header>

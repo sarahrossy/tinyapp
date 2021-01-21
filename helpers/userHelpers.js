@@ -41,14 +41,14 @@ const databaseFilter = (userID, urlDatabase) => {
   return filteredUrlDatabase;
 };
 
-// loop through the keys
-// use the key to access the entire user
-// then have access to use's email
-// compare against email address that was passed in
-// if equal, we've found the user
-
-const urlsForUser = (id) => {
-
+function generateRandomString(length, chars) {
+  var mask = '';
+  if (chars.indexOf('a') > -1) mask += 'abcdefghijklmnopqrstuvwxyz';
+  if (chars.indexOf('#') > -1) mask += '0123456789';
+  var result = '';
+  for (var i = length; i > 0; --i) result += mask[Math.floor(Math.random() * mask.length)];
+  return result;
 };
 
-module.exports = { emailExists, emailOrPasswordEmpty, fetchUser, databaseFilter };
+
+module.exports = { emailExists, emailOrPasswordEmpty, fetchUser, databaseFilter, generateRandomString };
