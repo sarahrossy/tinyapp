@@ -1,14 +1,13 @@
 const express = require("express");
 const morgan = require('morgan');
-const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
-//const cookieParser = require('cookie-parser');
+const bodyParser = require("body-parser"); 
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 const { emailExists, emailOrPasswordEmpty, fetchUser, databaseFilter, generateRandomString } = require('./helpers/userHelpers');
 
-const app = express(); // creates an express server called app
-const PORT = 8080; // default port 8080
+const app = express();
+const PORT = 8080;
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: true}));
@@ -46,7 +45,7 @@ const users = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.send("Homepage!");
 });
 
 app.get("/urls", (req, res) => {
@@ -110,10 +109,6 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const submittedPassword = req.body.password;
   const hashedPassword = bcrypt.hashSync(submittedPassword, 10);
-
-  console.log(submittedPassword);
-  console.log(hashedPassword);
-  console.log(users);
   
   if (fetchUser(users, email)) {
     const user = fetchUser(users, email);
@@ -159,9 +154,7 @@ app.post("/register", (req, res) => {
     console.log("user already exists!");
     res.sendStatus(404);
   } else {
-    console.log(users);
     const newUser = {
-      // name: incomingName,
       email: incomingEmail,
       password: hashedPassword
     };
@@ -183,12 +176,10 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const templateVars = {
     shortURL: shortURL,
-    //cannot read property "longURL" pf undefined
     longURL: urlDatabase[shortURL].longURL,
     user: req.session['user_id']
   };
   res.render("urls_show", templateVars);
-  //console.log(templateVars);
 });
 
 app.listen(PORT, () => {
