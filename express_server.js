@@ -2,7 +2,7 @@ const express = require("express");
 const morgan = require('morgan');
 const bodyParser = require("body-parser"); // used for post requests, turns JSON (string) into JS
 //const cookieParser = require('cookie-parser');
-var cookieSession = require('cookie-session');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 const { emailExists, emailOrPasswordEmpty, fetchUser, databaseFilter, generateRandomString } = require('./helpers/userHelpers');
@@ -11,7 +11,6 @@ const app = express(); // creates an express server called app
 const PORT = 8080; // default port 8080
 
 app.use(morgan('dev'));
-//app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(
   cookieSession({
@@ -23,27 +22,27 @@ app.use(
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  b6UTxQ: 
+  b6UTxQ:
   { longURL: "https://www.tsn.ca",
-  userID: "aJ48lW" },
+    userID: "aJ48lW" },
   i3BoGr:
   { longURL: "https://www.google.ca",
-  userID: "aJ48lW" }
+    userID: "aJ48lW" }
 };
 
-const users = { 
+const users = {
   "userRandomID":
   {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple"
   },
- "user2RandomID":
+  "user2RandomID":
  {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  }
+   id: "user2RandomID",
+   email: "user2@example.com",
+   password: "dishwasher-funk"
+ }
 };
 
 app.get("/", (req, res) => {
@@ -63,11 +62,11 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(6, '#a');
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = { 
+  urlDatabase[shortURL] = {
     longURL: longURL,
     userID: req.session['user_id']
   };
-  res.redirect(`/urls/${shortURL}`); 
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -87,11 +86,11 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
-  res.redirect(`/urls`); 
+  res.redirect(`/urls`);
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = { 
+  urlDatabase[req.params.shortURL] = {
     longURL: req.body.newLongURL,
     userID: req.session['user_id']
   };
@@ -104,7 +103,7 @@ app.get('/login', (req, res) => {
     urls: urlDatabase,
     user: users[userID]
   };
-  res.render("login", templateVars); 
+  res.render("login", templateVars);
 });
 
 app.post('/login', (req, res) => {
@@ -118,15 +117,15 @@ app.post('/login', (req, res) => {
   
   if (fetchUser(users, email)) {
     const user = fetchUser(users, email);
-      if (bcrypt.compareSync(submittedPassword, hashedPassword)) {
-        req.session.user_id = user.id;
-        res.redirect('/urls');
-      } else {
-        console.log("Passwords do not match!")
-        res.sendStatus(404);
-      };
+    if (bcrypt.compareSync(submittedPassword, hashedPassword)) {
+      req.session.user_id = user.id;
+      res.redirect('/urls');
+    } else {
+      console.log("Passwords do not match!");
+      res.sendStatus(404);
+    }
   } else {
-    console.log("User is not registered in our database!")
+    console.log("User is not registered in our database!");
     res.sendStatus(404);
   }
 });
@@ -154,7 +153,7 @@ app.post("/register", (req, res) => {
     console.log("email already exists");
     res.redirect('/register');
   } else if (emailOrPasswordEmpty(incomingEmail, incomingName)) {
-    console.log("email or password are blank fields")
+    console.log("email or password are blank fields");
     res.sendStatus(404);
   } else if (fetchUser(users, incomingEmail)) {
     console.log("user already exists!");
@@ -165,7 +164,7 @@ app.post("/register", (req, res) => {
       // name: incomingName,
       email: incomingEmail,
       password: hashedPassword
-    }
+    };
     const newUserID = generateRandomString(6, '#a');
     newUser.id = newUserID;
     users[newUserID] = newUser;
@@ -182,12 +181,12 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const templateVars = { 
+  const templateVars = {
     shortURL: shortURL,
     //cannot read property "longURL" pf undefined
     longURL: urlDatabase[shortURL].longURL,
     user: req.session['user_id']
-  }; 
+  };
   res.render("urls_show", templateVars);
   //console.log(templateVars);
 });
