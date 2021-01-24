@@ -34,18 +34,96 @@ const users = {
   {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple"
+    password: bcrypt.hashSync("purple", 10)
   },
   "user2RandomID":
  {
    id: "user2RandomID",
    email: "user2@example.com",
-   password: "dishwasher-funk"
+   password: bcrypt.hashSync("dishwasher-funk", 10)
  }
 };
 
+app.get("/register", (req, res) => {
+  const userID = req.session['user_id'];
+  const templateVars = {
+    user: users[userID]
+  };
+  res.render('registration', templateVars);
+
+});
+
+app.post("/register", (req, res) => {
+  const incomingEmail = req.body.email;
+  const incomingName = req.body.name;
+  const incomingPassword = req.body.password;
+  const hashedPassword = bcrypt.hashSync(incomingPassword, 10);
+  if (emailExists(users, incomingEmail)) {
+    console.log("email already exists");
+    res.redirect('/register');
+  } else if (emailOrPasswordEmpty(incomingEmail, incomingName)) {
+    console.log("email or password are blank fields");
+    res.sendStatus(404);
+  } else if (fetchUser(users, incomingEmail)) {
+    console.log("user already exists!");
+    res.sendStatus(404);
+  } else {
+    const newUser = {
+      email: incomingEmail,
+      password: hashedPassword
+    };
+    const newUserID = generateRandomString(6, '#a');
+    newUser.id = newUserID;
+    users[newUserID] = newUser;
+    req.session['user_id'] = newUserID;
+    res.redirect('/urls');
+  }
+});
+
+app.get('/login', (req, res) => {
+  const userID = req.session['user_id'];
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[userID]
+  };
+  res.render("login", templateVars);
+});
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const submittedPassword = req.body.password;
+  const user = fetchUser(users, email);
+  if (user) {
+    console.log(submittedPassword);
+    if (bcrypt.compareSync(submittedPassword, user.password)) {
+      req.session.user_id = user.id;
+      res.redirect('/urls');
+    } else {
+      console.log("Passwords do not match!");
+      // res.render("error", {errorMessage: "Passwords do not match!"});
+      res.status(401);
+      res.send("Passwords do not match!");
+    }
+  } else {
+    console.log("User is not registered in our database!");
+    // res.render("error", {errorMessage: "User is not registered in our database!"});
+    res.status(401);
+    res.send("User is not registered in our database!");
+  }
+});
+
+app.use("/", (req, res, next) => {
+  if (!req.session['user_id']) {
+    // res.status(401);
+    // res.send("Unauthorized, please login");
+    res.redirect("/login");
+  } else {
+    next();
+  }
+});
+
 app.get("/", (req, res) => {
-  res.send("Homepage!");
+    res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
@@ -59,6 +137,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (!req.session['user_id']) {
+    res.status(401);
+    res.send("Unauthorized");
+  }
   const shortURL = generateRandomString(6, '#a');
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = {
@@ -96,74 +178,9 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect(`/urls`);
 });
 
-app.get('/login', (req, res) => {
-  const userID = req.session['user_id'];
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[userID]
-  };
-  res.render("login", templateVars);
-});
-
-app.post('/login', (req, res) => {
-  const email = req.body.email;
-  const submittedPassword = req.body.password;
-  const hashedPassword = bcrypt.hashSync(submittedPassword, 10);
-  
-  if (fetchUser(users, email)) {
-    const user = fetchUser(users, email);
-    if (bcrypt.compareSync(submittedPassword, hashedPassword)) {
-      req.session.user_id = user.id;
-      res.redirect('/urls');
-    } else {
-      console.log("Passwords do not match!");
-      res.sendStatus(404);
-    }
-  } else {
-    console.log("User is not registered in our database!");
-    res.sendStatus(404);
-  }
-});
-
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/urls');
-});
-
-app.get("/register", (req, res) => {
-  const userID = req.session['user_id'];
-  const templateVars = {
-    user: users[userID]
-  };
-  res.render('registration', templateVars);
-
-});
-
-app.post("/register", (req, res) => {
-  const incomingEmail = req.body.email;
-  const incomingName = req.body.name;
-  const incomingPassword = req.body.password;
-  const hashedPassword = bcrypt.hashSync(incomingPassword, 10);
-  if (emailExists(users, incomingEmail)) {
-    console.log("email already exists");
-    res.redirect('/register');
-  } else if (emailOrPasswordEmpty(incomingEmail, incomingName)) {
-    console.log("email or password are blank fields");
-    res.sendStatus(404);
-  } else if (fetchUser(users, incomingEmail)) {
-    console.log("user already exists!");
-    res.sendStatus(404);
-  } else {
-    const newUser = {
-      email: incomingEmail,
-      password: hashedPassword
-    };
-    const newUserID = generateRandomString(6, '#a');
-    newUser.id = newUserID;
-    users[newUserID] = newUser;
-    req.session['user_id'] = newUserID;
-    res.redirect('/urls');
-  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
