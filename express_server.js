@@ -58,15 +58,10 @@ app.post("/register", (req, res) => {
   const incomingName = req.body.name;
   const incomingPassword = req.body.password;
   const hashedPassword = bcrypt.hashSync(incomingPassword, 10);
-  if (emailExists(users, incomingEmail)) {
-    console.log("email already exists");
-    res.redirect('/register');
-  } else if (emailOrPasswordEmpty(incomingEmail, incomingName)) {
-    console.log("email or password are blank fields");
-    res.sendStatus(404);
+  if (emailOrPasswordEmpty(incomingEmail, incomingPassword)) {
+  res.render("error", {errorMessage: "Email or password are empty fields!"}); 
   } else if (fetchUser(users, incomingEmail)) {
-    console.log("user already exists!");
-    res.sendStatus(404);
+    res.render("error", {errorMessage: "This email already exists in our database."});
   } else {
     const newUser = {
       email: incomingEmail,
@@ -100,15 +95,10 @@ app.post('/login', (req, res) => {
       res.redirect('/urls');
     } else {
       console.log("Passwords do not match!");
-      // res.render("error", {errorMessage: "Passwords do not match!"});
-      res.status(401);
-      res.send("Passwords do not match!");
+      res.render("error", {errorMessage: "We were expecting a different password."});
     }
   } else {
-    console.log("User is not registered in our database!");
-    // res.render("error", {errorMessage: "User is not registered in our database!"});
-    res.status(401);
-    res.send("User is not registered in our database!");
+    res.render("error", {errorMessage: "This email is not registered in our database!"});
   }
 });
 
