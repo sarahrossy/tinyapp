@@ -1,10 +1,14 @@
 const express = require("express");
+// for dev purposes - automatically restarts server
 const morgan = require('morgan');
 const bodyParser = require("body-parser"); 
+// to keep track of user login status
 const cookieSession = require('cookie-session');
+// to hash passwords
 const bcrypt = require('bcrypt');
 
-const { emailExists, emailOrPasswordEmpty, fetchUser, databaseFilter, generateRandomString } = require('./helpers/userHelpers');
+// helper functions
+const { emailOrPasswordEmpty, fetchUser, databaseFilter, generateRandomString } = require('./helpers/userHelpers');
 
 const app = express();
 const PORT = 8080;
@@ -18,6 +22,7 @@ app.use(
   })
 );
 
+// ejs pages found in /views 
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -29,6 +34,7 @@ const urlDatabase = {
     userID: "aJ48lW" }
 };
 
+// user database format for example purposes
 const users = {
   "userRandomID":
   {
@@ -55,7 +61,6 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const incomingEmail = req.body.email;
-  const incomingName = req.body.name;
   const incomingPassword = req.body.password;
   const hashedPassword = bcrypt.hashSync(incomingPassword, 10);
   if (emailOrPasswordEmpty(incomingEmail, incomingPassword)) {
@@ -102,10 +107,9 @@ app.post('/login', (req, res) => {
   }
 });
 
+// cookie check gateway
 app.use("/", (req, res, next) => {
   if (!req.session['user_id']) {
-    // res.status(401);
-    // res.send("Unauthorized, please login");
     res.redirect("/login");
   } else {
     next();
@@ -146,7 +150,7 @@ app.get("/urls/new", (req, res) => {
     urls: urlDatabase,
     user: users[userID]
   };
-
+  // user must be logged in to create a new URL
   if (templateVars.user) {
     res.render("urls_new", templateVars);
   } else {

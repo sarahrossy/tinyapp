@@ -1,11 +1,3 @@
-const emailExists = (userDatabase, email) => {
-  if (userDatabase[email]) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
 const emailOrPasswordEmpty = (email, password) => {
   if (email === "" || password === "") {
     return true;
@@ -51,4 +43,4 @@ function generateRandomString(length, chars) {
 };
 
 
-module.exports = { emailExists, emailOrPasswordEmpty, fetchUser, databaseFilter, generateRandomString };
+module.exports = { emailOrPasswordEmpty, fetchUser, databaseFilter, generateRandomString };
