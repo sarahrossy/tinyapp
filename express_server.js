@@ -50,6 +50,13 @@ const users = {
  }
 };
 
+// cannot refactor to helper files because requires users object in closure scope
+const checkInvalidSession = function(req) {
+  return (!req.session['user_id'] || !Object.keys(users).includes(req.session['user_id']))
+};
+
+// ROUTES
+
 app.get("/register", (req, res) => {
   const userID = req.session['user_id'];
   const templateVars = {
@@ -107,21 +114,16 @@ app.post('/login', (req, res) => {
   }
 });
 
-// cookie check gateway
-app.use("/", (req, res, next) => {
-  if (!req.session['user_id']) {
-    res.redirect("/login");
-  } else {
-    next();
-  }
-});
-
 app.get("/", (req, res) => {
     res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
   const userID = req.session['user_id'];
+  if (checkInvalidSession(req)) {
+    res.redirect(`/login`);
+    return;
+  }
   const filteredDatabase = databaseFilter(userID, urlDatabase);
   const templateVars = {
     urls: filteredDatabase,
@@ -131,9 +133,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  if (!req.session['user_id']) {
+  if (checkInvalidSession(req)) {
     res.status(401);
     res.send("Unauthorized");
+    return;
   }
   const shortURL = generateRandomString(6, '#a');
   const longURL = req.body.longURL;
@@ -145,31 +148,46 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (checkInvalidSession(req)) {
+    res.redirect('/login');
+    return;
+  }
   const userID = req.session['user_id'];
   const templateVars = {
     urls: urlDatabase,
     user: users[userID]
   };
-  // user must be logged in to create a new URL
-  if (templateVars.user) {
-    res.render("urls_new", templateVars);
-  } else {
-    res.redirect('/login');
-  }
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if (checkInvalidSession(req)) {
+    res.status(404);
+    res.send("Unauthorized! Please login.")
+    return;
+  }
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect(`/urls`);
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = {
-    longURL: req.body.newLongURL,
-    userID: req.session['user_id']
-  };
-  res.redirect(`/urls`);
+  if (checkInvalidSession(req)) {
+    res.status(404);
+    res.send("Unauthorized! Please login.");
+    return;
+  }
+  //check if the correct
+  if (urlDatabase[req.parans.shortURL].userID === req.session['user_id']) {
+    urlDatabase[req.params.shortURL] = {
+      longURL: req.body.newLongURL,
+      userID: req.session['user_id']
+    };
+    res.redirect(`/urls`);
+  } else {
+    res.status(404);
+    res.send("You are not the authenticated user for these URLs!");
+  }
 });
 
 app.post('/logout', (req, res) => {
@@ -184,6 +202,10 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (checkInvalidSession(req)) {
+    res.redirect('/login');
+    return;
+  }
   const shortURL = req.params.shortURL;
   const templateVars = {
     shortURL: shortURL,
